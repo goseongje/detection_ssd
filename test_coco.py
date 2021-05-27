@@ -11,8 +11,8 @@ import torchvision.transforms as transforms
 from torch.autograd import Variable
 from data import COCO_ROOT, COCO_CLASSES as labelmap
 from PIL import Image
-from data import VOCAnnotationTransform, VOCDetection, BaseTransform, VOC_CLASSES
-from data import COCO_CLASSES, COCOAnnotationTransform, COCODetection
+#from data import VOCAnnotationTransform, VOCDetection, BaseTransform, VOC_CLASSES
+from data import COCO_CLASSES, COCOAnnotationTransform, COCODetection, BaseTransform
 import torch.utils.data as data
 from ssd import build_ssd
 from data.coco_eval import CocoEvaluator
@@ -96,7 +96,7 @@ def test_net(save_folder, net, cuda, testset, transform, thresh):
                         {
                             "image_id": testset.pull_anno(i)[0]['image_id'],
                             "category_id": int(COCO_change_category[ii]),
-                            "bbox": [coords[0], coords[1], coords[2], coords[3]],
+                            "bbox": [coords[0], coords[1], coords[2] - coords[0], coords[3] - coords[1]],
                             "score": float('%.2f' %(score)),
                         }                     
                     ]
@@ -131,8 +131,8 @@ def test_net(save_folder, net, cuda, testset, transform, thresh):
 
 def test_voc():
     # load net
-    #num_classes = 81 # change
-    net = build_ssd('test', 300, 201) # initialize SSD
+    num_classes = 91 # change
+    net = build_ssd('test', 300, num_classes) # initialize SSD
     net.load_state_dict(torch.load(args.trained_model))
     net.eval()
     print('Finished loading model!')
