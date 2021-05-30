@@ -8,11 +8,12 @@ import torchvision.transforms as transforms
 import cv2
 import numpy as np
 
-COCO_ROOT = osp.join(HOME, 'data/coco/')
+COCO_ROOT = osp.join(HOME, 'UAV-DT/')
 IMAGES = 'images'
 ANNOTATIONS = 'annotations'
 COCO_API = 'PythonAPI'
 INSTANCES_SET = 'instances_{}.json'
+"""
 COCO_CLASSES = ('person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
                 'train', 'truck', 'boat', 'traffic light', 'fire', 'hydrant',
                 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog',
@@ -28,7 +29,8 @@ COCO_CLASSES = ('person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
                 'keyboard', 'cell phone', 'microwave oven', 'toaster', 'sink',
                 'refrigerator', 'book', 'clock', 'vase', 'scissors',
                 'teddy bear', 'hair drier', 'toothbrush')
-
+"""
+UAV_CLASSES = ('Car', 'Truck', 'Bus')
 
 def get_label_map(label_file):
     label_map = {}
@@ -44,7 +46,8 @@ class COCOAnnotationTransform(object):
     Initilized with a dictionary lookup of classnames to indexes
     """
     def __init__(self):
-        self.label_map = get_label_map(osp.join(COCO_ROOT, 'coco_labels.txt'))
+        #self.label_map = get_label_map(osp.join('./data/', 'coco_labels.txt'))
+        self.label_map = get_label_map(osp.join('./data/', 'uav_labels.txt'))
 
     def __call__(self, target, width, height):
         """
@@ -60,10 +63,17 @@ class COCOAnnotationTransform(object):
         for obj in target:
             if 'bbox' in obj:
                 bbox = obj['bbox']
+                
+                # json파일 내 box값 str->float 형으로 변경
+                bbox[0] = float(bbox[0])
+                bbox[1] = float(bbox[1])
+                bbox[2] = float(bbox[2])
+                bbox[3] = float(bbox[3])
+                
                 bbox[2] += bbox[0]
                 bbox[3] += bbox[1]
-                label_idx = self.label_map[obj['category_id']] - 1
-                final_box = list(np.array(bbox)/scale)
+                label_idx = self.label_map[int(str(obj['category_id']).replace('\n', ''))] - 1
+                final_box = list(np.array(bbox)/scale)                
                 final_box.append(label_idx)
                 res += [final_box]  # [xmin, ymin, xmax, ymax, label_idx]
             else:
@@ -83,13 +93,14 @@ class COCODetection(data.Dataset):
         in the target (bbox) and transforms it.
     """
 
-    def __init__(self, root, image_set='trainval35k', transform=None,
+    def __init__(self, root, image_set='Train', transform=None, instances_set='train2017',
                  target_transform=COCOAnnotationTransform(), dataset_name='MS COCO'):
         sys.path.append(osp.join(root, COCO_API))
         from pycocotools.coco import COCO
-        self.root = osp.join(root, IMAGES, image_set)
+        #self.root = osp.join(root, IMAGES, image_set)
+        self.root = osp.join(root, image_set)
         self.coco = COCO(osp.join(root, ANNOTATIONS,
-                                  INSTANCES_SET.format(image_set)))
+                                  INSTANCES_SET.format(instances_set)))
         self.ids = list(self.coco.imgToAnns.keys())
         self.transform = transform
         self.target_transform = target_transform
