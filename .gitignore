@@ -1,4 +1,4 @@
-weights/
+weights/ssd*
 eval/
 __pycache__
 .vscode
