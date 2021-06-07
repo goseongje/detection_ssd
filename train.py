@@ -17,7 +17,7 @@ import argparse
 import visdom
 
 os.environ['CUDA_DEVICE_ORDER']='PCI_BUS_ID'
-os.environ['CUDA_VISIBLE_DEVICES']='4,5,6'
+os.environ['CUDA_VISIBLE_DEVICES']='2,3'
 
 def str2bool(v):
     return v.lower() in ("yes", "true", "t", "1")
@@ -176,15 +176,6 @@ def train():
             # reset epoch loss counters
             loc_loss = 0
             conf_loss = 0 
-        
-        if args.tensorboard and iteration != 0 and (iteration % epoch_size == 0):
-            epoch += 1
-            tb_writer.add_scalar('training loc loss', 
-                                loc_loss / epoch_size, 
-                                epoch)
-            tb_writer.add_scalar('training conf loss', 
-                                conf_loss / epoch_size, 
-                                epoch)                                
 
         if iteration in cfg['lr_steps']:
             step_index += 1
@@ -227,12 +218,20 @@ def train():
             update_vis_plot(iteration, loss_l.item(), loss_c.item(),
                             iter_plot, epoch_plot, 'append')
 
+        if (args.tensorboard): #or (args.tensorboard and iteration % epoch_size == 0):
+            epoch += 1
+            tb_writer.add_scalar('training loss', loss.item(), iteration)
+
         if iteration != 0 and iteration % 5000 == 0:
             print('Saving state, iter:', iteration)
             torch.save(ssd_net.state_dict(), 'weights/ssd300_UAV_DT_' +
                        repr(iteration) + '.pth')
+                       
     torch.save(ssd_net.state_dict(),
                args.save_folder + '' + args.dataset + '.pth')
+    
+    if args.tensorboard:
+        tb_writer.close()               
 
 
 def adjust_learning_rate(optimizer, gamma, step):

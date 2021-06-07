@@ -65,14 +65,15 @@ class COCOAnnotationTransform(object):
                 bbox = obj['bbox']
                 
                 # json파일 내 box값 str->float 형으로 변경
-                bbox[0] = float(bbox[0])
-                bbox[1] = float(bbox[1])
-                bbox[2] = float(bbox[2])
-                bbox[3] = float(bbox[3])
+                #bbox[0] = float(bbox[0])
+                #bbox[1] = float(bbox[1])
+                #bbox[2] = float(bbox[2])
+                #bbox[3] = float(bbox[3])
                 
                 bbox[2] += bbox[0]
                 bbox[3] += bbox[1]
-                label_idx = self.label_map[int(str(obj['category_id']).replace('\n', ''))] - 1
+                #label_idx = self.label_map[int(str(obj['category_id']).replace('\n', ''))] - 1
+                label_idx = self.label_map[obj['category_id']] - 1
                 final_box = list(np.array(bbox)/scale)                
                 final_box.append(label_idx)
                 res += [final_box]  # [xmin, ymin, xmax, ymax, label_idx]
